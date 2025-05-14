@@ -7,7 +7,7 @@ data:
   config.yaml: |
     services:
       - name: ssd-opa
-        url: https://<your-ssd-opa-endpoint>
+        url: https://naveen-ssd.ssdint.opsmx.org
 
     bundles:
       ssd:
