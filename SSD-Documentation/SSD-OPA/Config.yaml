@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: opa-config
+  namespace: opa
+data:
+  config.yaml: |
+    services:
+      - name: ssd-opa
+        url: https://<your-ssd-opa-endpoint>
+
+    bundles:
+      ssd:
+        service: ssd-opa
+        resource: bundles/ssd
+        persist: true
+        polling:
+          min_delay_seconds: 10
+          max_delay_seconds: 30
+
+    decision_logs:
+      service: ssd-opa
+      reporting:
+        min_delay_seconds: 5
+        max_delay_seconds: 30
+
+    status:
+      service: ssd-opa
+      include_bundle_status: true
+      include_config_status: true
