@@ -7,7 +7,7 @@ pipeline {
     }
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Jenkins credential ID
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credential')  // Jenkins credential ID
         
     }
 
