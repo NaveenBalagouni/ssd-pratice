@@ -4,27 +4,24 @@ FROM docker:24.0.5-dind
 # Step 2: Set up environment variables for Docker
 ENV DOCKER_CLI_EXPERIMENTAL=enabled
 
-# Step 3: Enable Docker daemon (Docker-in-Docker setup)
-RUN dockerd &
-
-# Step 4: Install Python and dependencies for the app
+# Step 3: Install Python and dependencies for the app
 RUN apk add --no-cache python3 py3-pip
 
-# Step 5: Set working directory for the app
+# Step 4: Set working directory for the app
 WORKDIR /Docker-app
 
-# Step 6: Copy app code and install dependencies
+# Step 5: Copy app code and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Step 7: Copy the rest of the app code
+# Step 6: Copy the rest of the app code
 COPY . .
 
-# Step 8: Expose Docker port (if needed, for Docker API interaction)
+# Step 7: Expose Docker port (optional for Docker API interaction)
 EXPOSE 2375
 
-# Step 9: Set the default command for the Python app
-CMD ["python3", "app.py"]
+# Step 8: Set the default command for the Python app
+CMD ["python3", "Docker-app/app.py"]
 
-# Optional: Expose the Docker socket if needed (if you're using Docker-in-Docker)
+# Optional: Expose the Docker socket (if needed for Docker-in-Docker)
 VOLUME /var/run/docker.sock
