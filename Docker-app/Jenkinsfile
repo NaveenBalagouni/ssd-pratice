@@ -32,7 +32,7 @@ pipeline {
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS)
                     sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                    sh 'docker push yourusername/yourimage:latest'{
+                    sh 'docker push yourusername/yourimage:latest' {
                     dockerImage.push('latest')
                     }
                 }
