@@ -22,7 +22,7 @@ pipeline {
             steps {
                 script {
                     dockerImage = docker.build("${DOCKER_IMAGE}:latest")
-                    sh 'docker build -t yourusername/yourimage:latest 
+            
                 }
             }
         }
