@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Jenkins credential ID
-        DOCKER_IMAGE = 'naveenbalagouni/naveen-app'  // Docker Hub repository name
+        
     }
 
     stages {
