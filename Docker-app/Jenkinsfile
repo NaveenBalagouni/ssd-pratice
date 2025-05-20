@@ -1,34 +1,15 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Jenkins credential ID
-        DOCKER_IMAGE = 'naveenbalagouni/naveen-app'  // Docker Hub repository name
-    }
-
     stages {
-        stage('Clone Repo') {
-            steps {
-                git branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
-            }
-        }
-
-        stage('Build Docker Image') {
+        stage('Check Docker Version') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}:latest")
+                    sh 'docker --version'
                 }
             }
         }
 
-        stage('Login to DockerHub & Push') {
-            steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
-                        dockerImage.push('latest')
-                    }
-                }
-            }
-        }
+        // Other stages here
     }
 }
