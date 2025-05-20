@@ -1,14 +1,13 @@
 pipeline {
     agent {
         docker {
-            image 'your-custom-docker-image' // Use the custom image built from the Dockerfile above
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
+            image 'docker:24.0.5-dind'  // Use the official Docker-in-Docker image
+            args '-v /var/run/docker.sock:/var/run/docker.sock'  // Mount Docker socket
         }
     }
 
     environment {
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-credentials')  // Jenkins credential ID
-        
     }
 
     stages {
@@ -21,8 +20,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("${DOCKER_IMAGE}:latest")
-            
+                    dockerImage = docker.build("naveenbalagouni/naveen-app:latest", "Docker-app")
                 }
             }
         }
@@ -30,10 +28,8 @@ pipeline {
         stage('Login to DockerHub & Push') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS)
-                    sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD'
-                    sh 'docker push yourusername/yourimage:latest' {
-                    dockerImage.push('latest')
+                    docker.withRegistry('https://index.docker.io/v1/', DOCKERHUB_CREDENTIALS) {
+                        dockerImage.push('latest')  // Push the image to DockerHub
                     }
                 }
             }
