@@ -3,14 +3,14 @@ pipeline {
     
     environment {
         DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
-        DOCKER_IMAGE = "your-dockerhub-username/my-python-app"
+        DOCKER_IMAGE = "naveenbalagouni/my-python-app"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
                 // Checkout the code from GitHub
-                git 'https://github.com/<your-username>/my-python-docker-app.git'
+                git 'https://github.com/NaveenBalagouni/ssd-pratice.git'
             }
         }
         
