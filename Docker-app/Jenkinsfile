@@ -10,7 +10,8 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 // Checkout the code from GitHub
-                git 'https://github.com/NaveenBalagouni/ssd-pratice.git'
+                git branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
+
             }
         }
         
