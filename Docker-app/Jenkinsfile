@@ -1,5 +1,9 @@
 pipeline {
     agent any
+
+    tools {
+        git 'Default' // Or the name of your Git installation from Global Tool Configuration
+    }
     
     environment {
         DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
