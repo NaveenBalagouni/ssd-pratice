@@ -1,58 +1,34 @@
 pipeline {
-    agent any
-    
-    environment {
-        DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
-        DOCKER_IMAGE = "naveenbalagouni/my-python-app"
-    }
-
-    stages {
-        stage('Checkout Code') {
-            steps {
-                // Checkout the code from GitHub
-                git credentialsId: 'your-github-credentials-id', branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
-
-            }
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: docker
+    image: docker:24.0.7-dind
+    command:
+    - cat
+    tty: true
+    volumeMounts:
+    - name: docker-sock
+      mountPath: /var/run/docker.sock
+  volumes:
+  - name: docker-sock
+    hostPath:
+      path: /var/run/docker.sock
+"""
         }
-        
+    }
+    stages {
         stage('Build Docker Image') {
             steps {
-                script {
-                    // Login to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh 'docker --version'  // Check Docker version to ensure Docker is available
-                        sh """
-                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                            docker build -t \$DOCKER_IMAGE:latest .
-                        """
-                    }
+                container('docker') {
+                    sh 'docker version'
+                    sh 'docker build -t myapp:latest .'
                 }
             }
-        }
-
-        stage('Push Docker Image to Docker Hub') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                            docker push \$DOCKER_IMAGE:latest
-                        """
-                    }
-                }
-            }
-        }
-    }
-
-    post {
-        always {
-            // Clean up after the build
-            cleanWs()
-        }
-        success {
-            echo 'Docker image built and pushed successfully!'
-        }
-        failure {
-            echo 'There was an error during the build or push process.'
         }
     }
 }
