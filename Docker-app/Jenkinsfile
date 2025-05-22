@@ -1,20 +1,74 @@
-# jenkins-build-pod.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: jenkins-docker-build
-spec:
-  containers:
-  - name: docker
-    image: docker:24.0.7-dind
-    command: ["cat"]
-    tty: true
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - name: docker-sock
-      mountPath: /var/run/docker.sock
-  volumes:
-  - name: docker-sock
-    hostPath:
-      path: /var/run/docker.sock
+pipeline {
+    agent any
+
+    environment {
+        // Set Docker Host environment variables for Jenkins
+        DOCKER_HOST = 'tcp://docker:2376'  // Assuming Docker-in-Docker
+        DOCKER_CERT_PATH = '/certs/client'
+        DOCKER_TLS_VERIFY = 1
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    // Checkout the repository containing Dockerfile and docker-compose.yml
+                    checkout scm
+                }
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                script {
+                    // Rebuild the Docker images as defined in docker-compose.yml
+                    sh 'docker-compose -f docker-compose.yml build'
+                }
+            }
+        }
+
+        stage('Deploy Services') {
+            steps {
+                script {
+                    // Start the containers using docker-compose
+                    sh 'docker-compose -f docker-compose.yml up -d'
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    // Example of running tests on the Jenkins container (optional)
+                    // You can add your testing commands here
+                    echo 'Running tests...'
+                    // e.g., sh 'docker-compose exec jenkins <your-test-command>'
+                }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                script {
+                    // Clean up by stopping and removing containers after deployment (optional)
+                    sh 'docker-compose -f docker-compose.yml down'
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up after the pipeline is done, even if it fails
+            sh 'docker-compose -f docker-compose.yml down'
+        }
+
+        success {
+            echo 'Build and deployment completed successfully.'
+        }
+
+        failure {
+            echo 'Something went wrong during the pipeline execution.'
+        }
+    }
+}
