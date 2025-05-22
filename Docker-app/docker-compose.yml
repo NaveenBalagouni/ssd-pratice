@@ -1,25 +1,9 @@
 version: "3.3"
+
 services:
-  docker:
-    image: docker:dind
-    restart: on-failure
-    privileged: true  # This is necessary for Docker-in-Docker to work
-    environment:
-      - DOCKER_TLS_CERTDIR=/certs
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock  # Allow Docker to communicate with the host's Docker daemon
-      - docker-certs:/certs  # Store certificates for TLS communication
-
   jenkins:
-    build: services/jenkins  # Assuming the Jenkins Dockerfile is located in services/jenkins
-    restart: on-failure
-    depends_on:
-      - docker  # Ensure Docker service is up before starting Jenkins
-    environment:
-      - DOCKER_HOST=tcp://docker:2376  # Specify Docker host with TLS enabled
-      - DOCKER_CERT_PATH=/certs/client  # Path for Docker client certificates
-      - DOCKER_TLS_VERIFY=1  # Enable TLS verification for secure communication with Docker daemon
-
-volumes:
-  docker-certs:
-    driver: local  # Volume for Docker TLS certificates
+    build: services/jenkins
+    ports:
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
