@@ -16,15 +16,10 @@ spec:
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
-    - name: docker-bin
-      mountPath: /usr/bin/docker
   volumes:
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
-  - name: docker-bin
-    hostPath:
-      path: /usr/bin/docker
 """
     }
   }
@@ -32,8 +27,13 @@ spec:
     stage('Build Docker Image') {
       steps {
         container('docker') {
-          sh 'apk add git || apt update && apt install -y git'  // install git
-          sh 'docker --version'
+          // Install git on Alpine
+          sh 'apk add --no-cache git'
+          // Debug info
+          sh 'docker --version && git --version'
+          // Make sure Dockerfile exists
+          sh 'ls -l'
+          // Build the image
           sh 'docker build -t myapp:latest .'
         }
       }
