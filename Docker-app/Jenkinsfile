@@ -1,13 +1,15 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_HOME = '/usr/bin/docker' // Path to Docker executable on host machine
+        PATH = "/usr/local/bin:/usr/bin:$DOCKER_HOME" // Ensure Docker is in the PATH
+    }
     stages {
         stage('Check Docker') {
             steps {
-                sh 'echo $PATH'
-                sh 'ls -l /usr/bin/docker'
-                sh 'which docker || echo "Docker not found"'
-                sh 'docker --version || echo "Docker CLI not available"'
-                sh 'docker ps'
+                sh 'which docker'  // To check the Docker path
+                sh 'docker --version'
+                sh 'docker ps' // Run Docker command
             }
         }
     }
