@@ -1,7 +1,7 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
+  agent {
+    kubernetes {
+      yaml """
 apiVersion: v1
 kind: Pod
 spec:
@@ -11,24 +11,32 @@ spec:
     command:
     - cat
     tty: true
+    securityContext:
+      privileged: true
     volumeMounts:
     - name: docker-sock
       mountPath: /var/run/docker.sock
+    - name: docker-bin
+      mountPath: /usr/bin/docker
   volumes:
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
+  - name: docker-bin
+    hostPath:
+      path: /usr/bin/docker
 """
-        }
     }
-    stages {
-        stage('Build Docker Image') {
-            steps {
-                container('docker') {
-                    sh 'docker version'
-                    sh 'docker build -t myapp:latest .'
-                }
-            }
+  }
+  stages {
+    stage('Build Docker Image') {
+      steps {
+        container('docker') {
+          sh 'apk add git || apt update && apt install -y git'  // install git
+          sh 'docker --version'
+          sh 'docker build -t myapp:latest .'
         }
+      }
     }
+  }
 }
