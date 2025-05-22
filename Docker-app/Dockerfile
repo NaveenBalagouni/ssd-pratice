@@ -1,14 +1,15 @@
-# Use official Python image
-FROM python:3.10-slim
+FROM jenkins/jenkins:lts-jdk11
 
-# Set working directory
-WORKDIR /Docker-app
+# Switch to root user to install Docker
+USER root
 
-# Copy files
-COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Update apt-get and install Docker and Docker CLI tools
+RUN apt-get update \
+    && apt-get install -y \
+    docker.io \
+    docker-ce-cli \
+    containerd.io \
+    && apt-get clean
 
-COPY . .
-
-# Run the application
-CMD ["python", "app.py"]
+# Switch back to the Jenkins user
+USER jenkins
