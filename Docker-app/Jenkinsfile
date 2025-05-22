@@ -7,6 +7,7 @@ pipeline {
                 sh 'ls -l /usr/bin/docker'
                 sh 'which docker || echo "Docker not found"'
                 sh 'docker --version || echo "Docker CLI not available"'
+                sh 'docker ps'
             }
         }
     }
