@@ -1,15 +1,13 @@
-pipeline {
-  agent {
-    kubernetes {
-      yaml """
+# jenkins-build-pod.yaml
 apiVersion: v1
 kind: Pod
+metadata:
+  name: jenkins-docker-build
 spec:
   containers:
   - name: docker
     image: docker:24.0.7-dind
-    command:
-    - cat
+    command: ["cat"]
     tty: true
     securityContext:
       privileged: true
@@ -20,23 +18,3 @@ spec:
   - name: docker-sock
     hostPath:
       path: /var/run/docker.sock
-"""
-    }
-  }
-  stages {
-    stage('Build Docker Image') {
-      steps {
-        container('docker') {
-          // Install git on Alpine
-          sh 'apk add --no-cache git'
-          // Debug info
-          sh 'docker --version && git --version'
-          // Make sure Dockerfile exists
-          sh 'ls -l'
-          // Build the image
-          sh 'docker build -t myapp:latest .'
-        }
-      }
-    }
-  }
-}
