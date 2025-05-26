@@ -1,24 +1,52 @@
-podTemplate(label: 'docker-agent', containers: [
-    containerTemplate(name: 'docker', image: 'your-dockerhub-username/jenkins-docker-agent:latest', command: 'cat', ttyEnabled: true)
-]) {
-  node('docker-agent') {
-    container('docker') {
-      stage('Check Docker') {
-        sh 'docker version'
-      }
-
-      stage('Build Docker Image') {
-        sh 'docker build -t my-app-image:latest .'
-      }
-
-      stage('Push Image') {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-          sh '''
-            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-            docker push my-app-image:latest
-          '''
-        }
-      }
+pipeline {
+    agent any
+    environment {
+        DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
+        DOCKER_IMAGE = "naveenbalagouni/my-python-app"
     }
-  }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                // Checkout the code from GitHub
+                git credentialsId: 'your-github-credentials-id', branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
+            }
+        }
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Login to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'docker --version'  // Check Docker version to ensure Docker is available
+                        sh """
+                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                            docker build -t \$DOCKER_IMAGE:latest .
+                        """
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                            docker push \$DOCKER_IMAGE:latest
+                        """
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Clean up after the build
+            cleanWs()
+        }
+        success {
+            echo 'Docker image built and pushed successfully!'
+        }
+        failure {
+            echo 'There was an error during the build or push process.'
+        }
+    }
 }
