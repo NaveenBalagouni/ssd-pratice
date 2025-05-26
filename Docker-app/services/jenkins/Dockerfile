@@ -1,9 +1,16 @@
-FROM jenkins/inbound-agent:latest-jdk11
+# Use official Python image
+FROM python:3.10-slim
 
-USER root
+# Set work directory
+WORKDIR /app
 
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    usermod -aG docker jenkins
+# Copy files
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
 
-USER jenkins
+# Expose port
+EXPOSE 5000
+
+# Run the application
+CMD ["python", "app.py"]
