@@ -1,8 +1,33 @@
 pipeline {
-    agent any
+    agent {
+        kubernetes {
+            yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    some-label: docker-agent
+spec:
+  containers:
+    - name: docker
+      image: docker:24.0.5-dind
+      command:
+        - cat
+      tty: true
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - name: docker-graph-storage
+          mountPath: /var/lib/docker
+  volumes:
+    - name: docker-graph-storage
+      emptyDir: {}
+"""
+            defaultContainer 'docker'
+        }
+    }
 
     environment {
-        DOCKER_HUB_CREDS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "naveenbalagouni/my-python-app"
     }
 
@@ -37,10 +62,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo 'Docker image built and pushed successfully!'
+            echo '✅ Docker image built and pushed successfully!'
         }
         failure {
-            echo 'There was an error during the build or push process.'
+            echo '❌ There was an error during the build or push process.'
         }
     }
 }
