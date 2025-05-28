@@ -1,10 +1,15 @@
 pipeline {
-  agent { label 'docker-enabled-agent' }
+  agent {
+    kubernetes {
+      yamlFile 'path/to/your/pod-template.yaml'
+    }
+  }
   stages {
-    stage('Build Docker Image') {
+    stage('Check Docker') {
       steps {
-        sh 'docker --version'
-        // Other docker commands
+        container('docker') {
+          sh 'docker --version'
+        }
       }
     }
   }
