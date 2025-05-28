@@ -1,48 +1,30 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:24.0.5' // Use Docker CLI image
-            args '-v /var/run/docker.sock:/var/run/docker.sock' // Mount host Docker socket
-        }
-    }
+    agent any
 
     environment {
-        DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
+        DOCKER_HUB_CREDS = credentials('dockerhub-creds')
         DOCKER_IMAGE = "naveenbalagouni/my-python-app"
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git credentialsId: 'your-github-credentials-id', branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
             }
         }
-
-        stage('Debug Environment') {
+        stage('Check Docker') {
             steps {
-                sh 'whoami && hostname && docker --version || echo "Docker not found"'
+                sh 'docker --version'
             }
         }
-
-        stage('Build Docker Image') {
+        stage('Build and Push Docker Image') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                            docker build -t \$DOCKER_IMAGE:latest .
-                        """
-                    }
-                }
-            }
-        }
-
-        stage('Push Docker Image to Docker Hub') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "docker push \$DOCKER_IMAGE:latest"
-                    }
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker build -t $DOCKER_IMAGE:latest .
+                        docker push $DOCKER_IMAGE:latest
+                    '''
                 }
             }
         }
@@ -53,10 +35,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo '✅ Docker image built and pushed successfully!'
+            echo 'Docker image built and pushed successfully!'
         }
         failure {
-            echo '❌ There was an error during the build or push process.'
+            echo 'There was an error during the build or push process.'
         }
     }
 }
