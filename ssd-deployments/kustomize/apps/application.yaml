@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/NaveenBalagouni/ssd-pratice.git   # 🔁 Change to your repo
     targetRevision: main                              # Branch or tag
-    path: ssd-deployments/kustomize                       # Path inside the repo
+    path: ssd-deployments                   # Path inside the repo
   destination:
     server: https://kubernetes.default.svc            # Use this for in-cluster deployment
     namespace: naveen-argocd-app                      # 🔁 Target namespace
