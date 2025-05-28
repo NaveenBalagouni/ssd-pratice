@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-app                      # Change to your app's name
+  namespace: argocd                 # Namespace where Argo CD is installed
+spec:
+  project: default                  # Change if using a different Argo CD project
+  source:
+    repoURL: https://github.com/your-org/your-repo.git   # 🔁 Change to your repo
+    targetRevision: main                              # Branch or tag
+    path: path/to/your/app                            # Path inside the repo
+  destination:
+    server: https://kubernetes.default.svc            # Use this for in-cluster deployment
+    namespace: my-app-namespace                       # 🔁 Target namespace
+  syncPolicy:
+    automated:                                       # Enables auto-sync (optional)
+      prune: true                                   # Automatically delete removed resources
+      selfHeal: true                                # Reapply if drift is detected
+    syncOptions:
+    - CreateNamespace=true                          # Automatically create the namespace
