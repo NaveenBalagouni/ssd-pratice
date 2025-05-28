@@ -1,79 +1,52 @@
 pipeline {
-    agent {
-        kubernetes {
-            yaml """
-apiVersion: v1
-kind: Pod
-spec:
-  containers:
-  - name: docker
-    image: docker:24.0.5-dind
-    securityContext:
-      privileged: true
-    command:
-      - dockerd-entrypoint.sh
-    args:
-      - --host=tcp://127.0.0.1:2375
-      - --host=unix:///var/run/docker.sock
-    env:
-      - name: DOCKER_TLS_CERTDIR
-        value: ""
-    volumeMounts:
-      - name: docker-graph-storage
-        mountPath: /var/lib/docker
-  volumes:
-    - name: docker-graph-storage
-      emptyDir: {}
-"""
-            defaultContainer 'docker'
-        }
-    }
-
+    agent any
     environment {
+        DOCKER_HUB_CREDS = credentials('dockerhub-creds') // Jenkins credentials ID for Docker Hub
         DOCKER_IMAGE = "naveenbalagouni/my-python-app"
     }
-
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
+                // Checkout the code from GitHub
                 git credentialsId: 'your-github-credentials-id', branch: 'main', url: 'https://github.com/NaveenBalagouni/ssd-pratice.git'
             }
         }
-
-        stage('Wait for Docker Daemon') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                    echo "Waiting for Docker daemon to be ready..."
-                    for i in {1..10}; do
-                      docker info && break
-                      sleep 3
-                    done
-                '''
+                script {
+                    // Login to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh 'docker --version'  // Check Docker version to ensure Docker is available
+                        sh """
+                            echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                            docker build -t \$DOCKER_IMAGE:latest .
+                        """
+                    }
+                }
             }
         }
-
-        stage('Build and Push Docker Image') {
+        stage('Push Docker Image to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh '''
-                        echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                        docker build -t $DOCKER_IMAGE:latest .
-                        docker push $DOCKER_IMAGE:latest
-                    '''
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                        sh """
+                            docker push \$DOCKER_IMAGE:latest
+                        """
+                    }
                 }
             }
         }
     }
-
     post {
         always {
+            // Clean up after the build
             cleanWs()
         }
         success {
-            echo '✅ Docker image built and pushed successfully!'
+            echo 'Docker image built and pushed successfully!'
         }
         failure {
-            echo '❌ There was an error during the build or push process.'
+            echo 'There was an error during the build or push process.'
         }
     }
 }
