@@ -1,9 +1,15 @@
-stage('Check Docker') {
-    steps {
-        sh '''
-            echo "Checking Docker availability..."
-            which docker || echo "Docker not found"
-            docker --version || echo "Docker not installed or not in PATH"
-        '''
+pipeline {
+    agent any
+
+    stages {
+        stage('Check Docker') {
+            steps {
+                sh '''
+                    echo "Checking Docker availability..."
+                    which docker || echo "Docker not found"
+                    docker --version || echo "Docker not installed or not in PATH"
+                '''
+            }
+        }
     }
 }
