@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:24.0.5-dind'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     stages {
         stage('Check Docker') {
@@ -8,7 +13,14 @@ pipeline {
                     echo "Checking Docker availability..."
                     which docker || echo "Docker not found"
                     docker --version || echo "Docker not installed or not in PATH"
+                    docker info || echo "Docker daemon not running or no permission"
                 '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t my-image .'
             }
         }
     }
